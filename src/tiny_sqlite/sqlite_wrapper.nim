@@ -1,16 +1,19 @@
-when defined(windows):
-  when defined(nimOldDlls):
-    const Lib = "sqlite3.dll"
-  elif defined(cpu64):
-    const Lib = "sqlite3_64.dll"
+when not defined(SqliteStatic):
+  when defined(windows):
+    when defined(nimOldDlls):
+      const Lib = "sqlite3.dll"
+    elif defined(cpu64):
+      const Lib = "sqlite3_64.dll"
+    else:
+      const Lib = "sqlite3_32.dll"
+  elif defined(macosx):
+    const Lib = "libsqlite3(|.0).dylib"
   else:
-    const Lib = "sqlite3_32.dll"
-elif defined(macosx):
-  const
-    Lib = "libsqlite3(|.0).dylib"
+    const Lib = "libsqlite3.so(|.0)"
+  {.pragma: sqlite, cdecl, dynlib: Lib.}
 else:
-  const
-    Lib = "libsqlite3.so(|.0)"
+  {.pragma: sqlite, cdecl.}
+  {.compile: "private/sqlite3/sqlite3.c".}
 
 type
     Sqlite3* = ptr object
@@ -96,7 +99,7 @@ const
   SQLITE_ALTER_TABLE* = 26.cint
   SQLITE_REINDEX* = 27.cint
   SQLITE_DENY* = 1.cint
-  SQLITE_IGNORE* = 2.cint 
+  SQLITE_IGNORE* = 2.cint
   SQLITE_DETERMINISTIC* = 0x800.cint
 
 const
@@ -147,148 +150,148 @@ const
     SQLITE_DBCONFIG_MAX* =                   1017.cint
 
 proc close*(db: Sqlite3): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_close".}
+    {.sqlite, importc: "sqlite3_close".}
 
 proc exec*(db: Sqlite3, sql: cstring, cb: Callback, p: pointer, errmsg: var cstring): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_exec".}
+    {.sqlite, importc: "sqlite3_exec".}
 
 proc last_insert_rowid*(db: Sqlite3): int64
-    {.cdecl, dynlib: Lib, importc: "sqlite3_last_insert_rowid".}
+    {.sqlite, importc: "sqlite3_last_insert_rowid".}
 
 proc changes*(db: Sqlite3): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_changes".}
+    {.sqlite, importc: "sqlite3_changes".}
 
 proc total_changes*(db: Sqlite3): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_total_changes".}
+    {.sqlite, importc: "sqlite3_total_changes".}
 
 proc busy_handler*(db: Sqlite3,
                    handler: proc (p: pointer, x: cint): cint {.cdecl.},
                    p: pointer): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_busy_handler".}
+    {.sqlite, importc: "sqlite3_busy_handler".}
 
 proc busy_timeout*(db: Sqlite3, ms: cint): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_busy_timeout".}
+    {.sqlite, importc: "sqlite3_busy_timeout".}
 
 proc open*(filename: cstring, db: var Sqlite3): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_open".}
+    {.sqlite, importc: "sqlite3_open".}
 
 proc open_v2*(filename: cstring, db: var Sqlite3, flags: cint, zVfsName: cstring ): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_open_v2".}
+    {.sqlite, importc: "sqlite3_open_v2".}
 
 proc errcode*(db: Sqlite3): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_errcode".}
+    {.sqlite, importc: "sqlite3_errcode".}
 
 proc errmsg*(db: Sqlite3): cstring
-    {.cdecl, dynlib: Lib, importc: "sqlite3_errmsg".}
+    {.sqlite, importc: "sqlite3_errmsg".}
 
 proc prepare_v2*(db: Sqlite3, zSql: cstring, nByte: cint, stmt: var Stmt,
                 pzTail: var cstring): cint
-    {.importc: "sqlite3_prepare_v2", cdecl, dynlib: Lib.}
+    {.importc: "sqlite3_prepare_v2", sqlite.}
 
 proc bind_blob*(stmt: Stmt, col: cint, value: pointer, len: cint,
                 para5: SqliteDestructor): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_bind_blob".}
+    {.sqlite, importc: "sqlite3_bind_blob".}
 
 proc bind_double*(stmt: Stmt, col: cint, value: float64): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_bind_double".}
+    {.sqlite, importc: "sqlite3_bind_double".}
 
 proc bind_int*(stmt: Stmt, col: cint, value: cint): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_bind_int".}
+    {.sqlite, importc: "sqlite3_bind_int".}
 
 proc bind_int64*(stmt: Stmt, col: cint, value: int64): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_bind_int64".}
+    {.sqlite, importc: "sqlite3_bind_int64".}
 
 proc bind_null*(stmt: Stmt, col: cint): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_bind_null".}
+    {.sqlite, importc: "sqlite3_bind_null".}
 
 proc bind_text*(stmt: Stmt, col: cint, value: cstring, len: cint,
                 destructor: SqliteDestructor): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_bind_text".}
+    {.sqlite, importc: "sqlite3_bind_text".}
 
 proc bind_parameter_count*(stmt: Stmt): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_bind_parameter_count".}
+    {.sqlite, importc: "sqlite3_bind_parameter_count".}
 
 proc bind_parameter_name*(stmt: Stmt, col: cint): cstring
-    {.cdecl, dynlib: Lib, importc: "sqlite3_bind_parameter_name".}
+    {.sqlite, importc: "sqlite3_bind_parameter_name".}
 
 proc bind_parameter_index*(stmt: Stmt, colName: cstring): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_bind_parameter_index".}
+    {.sqlite, importc: "sqlite3_bind_parameter_index".}
 
 proc clear_bindings*(stmt: Stmt): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_clear_bindings".}
+    {.sqlite, importc: "sqlite3_clear_bindings".}
 
 proc column_count*(stmt: Stmt): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_column_count".}
+    {.sqlite, importc: "sqlite3_column_count".}
 
 proc column_name*(stmt: Stmt, col: cint): cstring
-    {.cdecl, dynlib: Lib, importc: "sqlite3_column_name".}
+    {.sqlite, importc: "sqlite3_column_name".}
 
 proc column_table_name*(stmt: Stmt, col: cint): cstring
-    {.cdecl, dynlib: Lib, importc: "sqlite3_column_table_name".}
+    {.sqlite, importc: "sqlite3_column_table_name".}
 
 proc column_decltype*(stmt: Stmt, col: cint): cstring
-    {.cdecl, dynlib: Lib, importc: "sqlite3_column_decltype".}
+    {.sqlite, importc: "sqlite3_column_decltype".}
 
 proc step*(stmt: Stmt): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_step".}
+    {.sqlite, importc: "sqlite3_step".}
 
 proc data_count*(stmt: Stmt): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_data_count".}
+    {.sqlite, importc: "sqlite3_data_count".}
 
 proc column_blob*(stmt: Stmt, col: cint): pointer
-    {.cdecl, dynlib: Lib, importc: "sqlite3_column_blob".}
+    {.sqlite, importc: "sqlite3_column_blob".}
 
 proc column_bytes*(stmt: Stmt, col: cint): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_column_bytes".}
+    {.sqlite, importc: "sqlite3_column_bytes".}
 
 proc column_double*(stmt: Stmt, col: cint): float64
-    {.cdecl, dynlib: Lib, importc: "sqlite3_column_double".}
+    {.sqlite, importc: "sqlite3_column_double".}
 
 proc column_int*(stmt: Stmt, col: cint): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_column_int".}
+    {.sqlite, importc: "sqlite3_column_int".}
 
 proc column_int64*(stmt: Stmt, col: cint): int64
-    {.cdecl, dynlib: Lib, importc: "sqlite3_column_int64".}
+    {.sqlite, importc: "sqlite3_column_int64".}
 
 proc column_text*(stmt: Stmt, col: cint): cstring
-    {.cdecl, dynlib: Lib, importc: "sqlite3_column_text".}
+    {.sqlite, importc: "sqlite3_column_text".}
 
 proc column_type*(stmt: Stmt, col: cint): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_column_type".}
+    {.sqlite, importc: "sqlite3_column_type".}
 
 proc finalize*(stmt: Stmt): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_finalize".}
+    {.sqlite, importc: "sqlite3_finalize".}
 
 proc reset*(stmt: Stmt): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_reset".}
+    {.sqlite, importc: "sqlite3_reset".}
 
 proc libversion*(): cstring
-    {.cdecl, dynlib: Lib, importc: "sqlite3_libversion".}
+    {.sqlite, importc: "sqlite3_libversion".}
 
 proc libversion_number*(): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_libversion_number".}
+    {.sqlite, importc: "sqlite3_libversion_number".}
 
 proc db_handle*(stmt: Stmt): Sqlite3
-    {.cdecl, dynlib: Lib, importc: "sqlite3_db_handle".}
+    {.sqlite, importc: "sqlite3_db_handle".}
 
 proc get_autocommit*(db: Sqlite3): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_get_autocommit".}
+    {.sqlite, importc: "sqlite3_get_autocommit".}
 
 proc db_readonly*(db: Sqlite3, dbname: cstring): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_db_readonly".}
+    {.sqlite, importc: "sqlite3_db_readonly".}
 
 proc next_stmt*(db: Sqlite3, stmt: Stmt): Stmt
-    {.cdecl, dynlib: Lib, importc: "sqlite3_next_stmt".}
+    {.sqlite, importc: "sqlite3_next_stmt".}
 
 proc stmt_busy*(stmt: Stmt): bool
-    {.cdecl, dynlib: Lib, importc: "sqlite3_stmt_busy".}
+    {.sqlite, importc: "sqlite3_stmt_busy".}
 
 proc db_config*(db: Sqlite3, op: cint, a, b: cint): cint
-    {.cdecl, dynlib: Lib, importc: "sqlite3_db_config".}
+    {.sqlite, importc: "sqlite3_db_config".}
 
 proc free*(z: cstring)
-    {.cdecl, dynlib: Lib, importc: "sqlite3_free".}
+    {.sqlite, importc: "sqlite3_free".}
 
 when not defined(macosx):
     proc load_extension*(db: Sqlite3, filename: cstring, entry: cstring, error: var cstring): cint
-        {.cdecl, dynlib: Lib, importc: "sqlite3_load_extension".}
+        {.sqlite, importc: "sqlite3_load_extension".}
